@@ -8,16 +8,16 @@ Examples:
 
 cd example/teststack/TestStackExample/bin
 
-- List Tasks:
+List Tasks:
 php runtask.php Couchbase.Admin.TasksList
 
-- List Buckets:
+List Buckets:
 php runtask.php Couchbase.Admin.BucketsList
 
-- List Documents (Designs) by Bucket
+List Documents (Designs) by Bucket
 php runtask.php Couchbase.Admin.Bucket.DocumentsList
 
-- List Views by Bucket AND Design
+List Views by Bucket AND Design
 php runtask.php Couchbase.Admin.Bucket.Design.ViewsList
 
 
