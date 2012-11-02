@@ -137,6 +137,84 @@ class Client
         return $this;
     }
 
+
+    /**
+     * @param string $bucket
+     * @return array
+     * @throws \Exception
+     */
+    public function bucketDocumentsList($bucket)
+    {
+        $host = $this->getHost();
+        $port = $this->getPort();
+
+        $url    = 'http://' . $host . ':' . $port
+            . '/pools/default/buckets/' . $bucket . '/ddocs';
+        $params = array(
+            'processusnocache' => time() . '_' . rand(10000, 1000000),
+        );
+
+        $username = $this->getUsername();
+        $password = $this->getPassword();
+
+        $responseInfo = $this->curlGetBasicAuth(
+            $url,
+            $params,
+            $username,
+            $password
+        );
+
+        $responseBodyData = $responseInfo['bodyData'];
+
+        if (!is_array($responseBodyData)) {
+
+            throw new \Exception(
+                'Invalid responseData! ' . __METHOD__ . get_class($this)
+            );
+        }
+
+        return $responseBodyData;
+    }
+
+    /**
+     * @param string $bucket
+     * @param string $design
+     * @return array
+     * @throws \Exception
+     */
+    public function bucketDesignViewsList($bucket, $design)
+    {
+        $host = $this->getHost();
+        $port = $this->getPort();
+
+        $url    = 'http://' . $host . ':' . $port
+            . '/couchBase/' . $bucket . '/_design/'.$design;
+        $params = array(
+            'processusnocache' => time() . '_' . rand(10000, 1000000),
+        );
+
+        $username = $this->getUsername();
+        $password = $this->getPassword();
+
+        $responseInfo = $this->curlGetBasicAuth(
+            $url,
+            $params,
+            $username,
+            $password
+        );
+
+        $responseBodyData = $responseInfo['bodyData'];
+
+        if (!is_array($responseBodyData)) {
+
+            throw new \Exception(
+                'Invalid responseData! ' . __METHOD__ . get_class($this)
+            );
+        }
+
+        return $responseBodyData;
+    }
+
     /**
      * @return array
      * @throws \Exception
