@@ -1,0 +1,29 @@
+{
+    "name":"bastman/couchbaseadminclient",
+    "type":"library",
+    "description":"json rpc pipe",
+    "keywords":["library", "couchbase", "admin", "rest"],
+    "homepage":"http://github.com/bastman/couchbase-admin-client",
+    "license":"MIT",
+    "support":{
+        "issues":"https://github.com/bastman/couchbase-admin-client/issues"
+    },
+    "authors":[
+        {
+            "name":"Sebastian Schmidt",
+            "email":"sebastian.schmidt@crowdpark.com",
+            "homepage":"http://www.crowdpark.com",
+            "role":"Developer"
+        }
+    ],
+    "autoload":{
+        "psr-0":{
+            "Processus\\":"src",
+            "TestStackExample\\":"example/teststack"
+        }
+    },
+    "require":{
+        "php":">=5.3.3"
+    },
+    "minimum-stability":"dev"
+}
