@@ -53,6 +53,11 @@ class Client
     protected $_restApiPort = 8092;
 
     /**
+     * @var bool
+     */
+    protected $_authEnabled = true;
+
+    /**
      * @param string $value
      * @return Client
      */
@@ -187,6 +192,26 @@ class Client
         return $this;
     }
 
+
+
+    /**
+     * @return bool
+     */
+    public function getAuthEnabled()
+    {
+        return ($this->_authEnabled===true);
+    }
+
+    /**
+     * @param bool $value
+     * @return Client
+     */
+    public function setAuthEnabled($value)
+    {
+        $this->_authEnabled = ($value===true);
+
+        return $this;
+    }
     /**
      * @param $bucket
      * @param array $params
@@ -482,8 +507,10 @@ class Client
         );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
-        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-        curl_setopt($ch, CURLOPT_USERPWD, '' . $username . ':' . $password);
+        if($this->getAuthEnabled()){
+            curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+            curl_setopt($ch, CURLOPT_USERPWD, '' . $username . ':' . $password);
+        }
         curl_setopt($ch, CURLOPT_SSLVERSION, 3);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);

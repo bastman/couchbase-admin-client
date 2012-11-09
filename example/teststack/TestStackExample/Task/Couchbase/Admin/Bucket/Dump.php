@@ -83,7 +83,7 @@ class Dump
         $host = $client->getHost();
         $restApiPort = $client->getRestApiPort();
         $username = $client->getUsername();
-        $password = '';
+        $password = 'Administrator';
         $bucket = 'default';
 
 
@@ -109,6 +109,7 @@ class Dump
             false,
             $bucket
         );
+        $client->setAuthEnabled($bucket !=='default');
 
         $client->setHost($host);
         $client->setRestApiPort($restApiPort);
@@ -123,7 +124,7 @@ class Dump
         $cacheDirXmlFileInfo = $this->getCacheDirXmlFileInfo();
 
 
-        $pageSize = 10000;
+        $pageSize = 1000;
         $offset = 0;
 
         $totalRows = 0;
@@ -143,21 +144,27 @@ class Dump
             $cacheDirJsonFileInfo->getRealPath() . '/couchbasedump.jsonx'
         );
 
-        $jsonFileResource = fopen($jsonFileInfo->getPathname(), 'w+');
+
 
         $xmlFileInfo = new \SplFileInfo(
             $cacheDirXmlFileInfo->getRealPath() . '/couchbasedump.xml'
         );
-        $xmlFileResource = fopen($xmlFileInfo->getPathname(), 'w+');
 
+        $jsonFileResource = fopen($jsonFileInfo->getPathname(), 'w+');
+        $xmlFileResource = fopen($xmlFileInfo->getPathname(), 'w+');
 
         while (true) {
             $params['limit'] = $pageSize;
             $params['skip'] = $offset;
             $data = $this->couchbaseDump($bucket, $params);
 
-            $totalRows = $data['total_rows'];
+            try {
+                $totalRows = $data['total_rows'];
+            }catch (\Exception $e){
 
+                var_dump($client->getLastResponseInfo());
+                throw $e;
+            }
 
             $rows = $data['rows'];
             var_dump(
@@ -166,6 +173,8 @@ class Dump
                     'rowsCount' => count($rows),
                     'pageNo' => $pageNo,
                     'params' => $params,
+                    'memUsage'=>memory_get_usage(true),
+                    'memPeakUsage'=>memory_get_peak_usage(true),
 
                 )
             );
@@ -184,21 +193,27 @@ class Dump
                 //$allRows[] = $rows;
                 $jsonText = json_encode($row)
                     . PHP_EOL . PHP_EOL . PHP_EOL;
+
                 fwrite($jsonFileResource, $jsonText);
+
 
                 $xmlSerializer = new XmlRpcValue();
                 $xmlSerializer->setEncoding('UTF-8');
                 $xmlText = $xmlSerializer->encode($row)
                     . PHP_EOL . PHP_EOL . PHP_EOL;
 
+
                 fwrite($xmlFileResource, $xmlText);
 
+
             }
+
+
 
             $offset = $offset + (int)count($rows);
             $pageNo++;
             $rowsCounter += $currentRowsCount;
-
+            unset($rows);
             if ($rowsCounter > $totalRows) {
                 var_dump($client->getLastResponseInfo());
                 throw new \Exception(
@@ -208,7 +223,6 @@ class Dump
         }
 
         fclose($jsonFileResource);
-
         fclose($xmlFileResource);
 
         $totalRowsCount = $totalRows;
