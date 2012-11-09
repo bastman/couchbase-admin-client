@@ -18,6 +18,11 @@ class Client
     protected $_httpConnectTimeout = 5;
 
     /**
+     * @var int
+     */
+    protected $_httpClientVerbose = false;
+
+    /**
      * @var array|null
      */
     protected $_lastResponseInfo;
@@ -40,6 +45,12 @@ class Client
      * @var int
      */
     protected $_port = 8091;
+
+
+    /**
+     * @var int
+     */
+    protected $_restApiPort = 8092;
 
     /**
      * @param string $value
@@ -118,6 +129,26 @@ class Client
         return $this;
     }
 
+
+    /**
+     * @return int
+     */
+    public function getRestApiPort()
+    {
+        return (int)$this->_restApiPort;
+    }
+
+    /**
+     * @param int $value
+     * @return Client
+     */
+    public function setRestApiPort($value)
+    {
+        $this->_restApiPort = (int)$value;
+
+        return $this;
+    }
+
     /**
      * @return int
      */
@@ -137,6 +168,129 @@ class Client
         return $this;
     }
 
+    /**
+     * @return bool
+     */
+    public function getHttpClientVerbose()
+    {
+        return ($this->_httpClientVerbose===true);
+    }
+
+    /**
+     * @param bool $value
+     * @return Client
+     */
+    public function setHttpClientVerbose($value)
+    {
+        $this->_httpClientVerbose = ($value===true);
+
+        return $this;
+    }
+
+    /**
+     * @param $bucket
+     * @param array $params
+     * @return array
+     * @throws \Exception
+     */
+    public function bucketDump($bucket, $params=array())
+    {
+        //  http://localhost:8092/gamesim-sample/_all_docs?include_docs=true
+
+        if(!is_array($params)) {
+            $params = array();
+        }
+
+        $paramsDefault = array(
+            'stale'=>false,
+            'reduce'=>false,
+            'include_docs'=>true,
+        );
+        foreach($paramsDefault as $key => $value) {
+            if(!array_key_exists($key, $params)) {
+                $params[$key] = $value;
+            }
+        }
+
+
+        $params[
+            'processusnocache'] = time() . '_' . rand(10000, 1000000)
+        ;
+
+        $username = $this->getUsername();
+        $password = $this->getPassword();
+
+
+        $uriPath = '/'.$bucket.'/_all_docs';
+
+        $apiUrl = $this->newCouchbaseRestApiUrl($uriPath, array());
+
+        $responseInfo = $this->curlGetBasicAuth(
+            $apiUrl,
+            $params,
+            $username,
+            $password
+        );
+
+        $responseBodyData = $responseInfo['bodyData'];
+
+        if (!is_array($responseBodyData)) {
+
+            throw new \Exception(
+                'Invalid responseData! ' . __METHOD__ . get_class($this)
+            );
+        }
+
+        return $responseBodyData;
+
+
+    }
+
+    private function newCouchbaseRestApiUrl(
+        $uriPath, array $params = array()
+    )
+    {
+
+
+        $couchbaseHost = $this->getHost();
+        $restApiPort = $this->getRestApiPort();
+
+        $uriPath = (string)trim((string)$uriPath);
+        if(strpos($uriPath ,'/' ,0) !==0) {
+            $uriPath .= '/';
+        }
+
+        $url = 'http://'
+            . $couchbaseHost
+            . ':' . $restApiPort
+            . $uriPath;
+
+
+        if (!is_array($params)) {
+            $params = array();
+        }
+
+        // Prepare query string
+        $query = array();
+        foreach ($params as $key => $value) {
+            if (isset($value)) {
+                if (is_array($value) || is_bool($value)) {
+                    $value = json_encode($value);
+                }
+                $query[] = "$key=$value";
+            }
+        }
+        $queryString = implode('&', $query);
+
+        $urlFinal = (string)$url;
+
+        if(count(array_keys($query))>0) {
+           $urlFinal .= '?' . $queryString;
+        }
+
+        return $urlFinal;
+
+    }
 
     /**
      * @param string $bucket
@@ -335,7 +489,7 @@ class Client
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
         curl_setopt($ch, CURLOPT_HEADER, true);
 
-        curl_setopt($ch, CURLOPT_VERBOSE, 1);
+        curl_setopt($ch, CURLOPT_VERBOSE, $this->getHttpClientVerbose()); // set to true for debugging
         curl_setopt($ch, CURLOPT_HEADER, 1);
 
         $responseText = (string)curl_exec($ch);

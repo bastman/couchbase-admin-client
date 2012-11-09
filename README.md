@@ -20,5 +20,5 @@ php runtask.php Couchbase.Admin.Bucket.DocumentsList
 List Views by Bucket AND Design:
 php runtask.php Couchbase.Admin.Bucket.Design.ViewsList
 
-
-
+Dump all keys of a bucket as json and xml into filesystem
+php runtask.php Couchbase.Admin.Bucket.Dump

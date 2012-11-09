@@ -23,7 +23,20 @@
         }
     },
     "require":{
-        "php":">=5.3.3"
+        "php":">=5.3.3",
+        "bastman/json2xml":"master"
     },
+
+    "repositories":[
+        {
+            "type":"composer",
+            "url":"http://packages.zendframework.com/"
+        },
+        {
+            "type":"vcs",
+            "url":"https://github.com/bastman/json2xml.git"
+        }
+    ],
+
     "minimum-stability":"dev"
 }
